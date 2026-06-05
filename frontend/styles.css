@@ -247,3 +247,18 @@ td {
     width: 100%;
   }
 }
+
+.helper-text {
+  color: var(--muted);
+  margin: -6px 0 16px;
+}
+
+.admin-field {
+  min-width: 180px;
+  width: 100%;
+}
+
+.row-actions {
+  display: flex;
+  gap: 8px;
+}

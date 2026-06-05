@@ -35,6 +35,25 @@ class HardblockResponse(HardblockBase):
     completed_text: str
 
 
+class HotelPriorityBase(BaseModel):
+    hotel_name: str = Field(default="", max_length=160)
+    priority: str = Field(default="", max_length=80)
+
+
+class HotelPriorityCreate(HotelPriorityBase):
+    pass
+
+
+class HotelPriorityUpdate(HotelPriorityBase):
+    pass
+
+
+class HotelPriorityResponse(HotelPriorityBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+
+
 class ApiMessage(BaseModel):
     message: str
     id: Optional[int] = None

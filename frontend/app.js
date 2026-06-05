@@ -3,6 +3,9 @@ const message = document.querySelector('#message');
 const progressOutput = document.querySelector('#progress-output');
 const completedOutput = document.querySelector('#completed-output');
 const historyBody = document.querySelector('#history-body');
+const hotelPrioritiesBody = document.querySelector('#hotel-priorities-body');
+const hotelInput = document.querySelector('#hotel');
+const priorityInput = document.querySelector('#prioridad');
 
 const fields = [
   'airline',
@@ -64,6 +67,14 @@ function updateOutputs() {
   completedOutput.value = renderBlock(data, true);
 }
 
+function debounce(callback, delay = 350) {
+  let timer;
+  return (...args) => {
+    window.clearTimeout(timer);
+    timer = window.setTimeout(() => callback(...args), delay);
+  };
+}
+
 async function copyText(text, successMessage) {
   await navigator.clipboard.writeText(text);
   showMessage(successMessage);
@@ -112,6 +123,134 @@ function escapeHtml(value) {
     .replaceAll("'", '&#039;');
 }
 
+function priorityOptions(selectedPriority) {
+  return ['', 'Alta', 'Media', 'Baja'].map((priority) => {
+    const label = priority || 'Seleccionar';
+    const selected = priority === selectedPriority ? ' selected' : '';
+    return `<option value="${escapeHtml(priority)}"${selected}>${escapeHtml(label)}</option>`;
+  }).join('');
+}
+
+async function searchHotelPriority() {
+  const hotelName = hotelInput.value.trim();
+  if (!hotelName) {
+    return;
+  }
+
+  const response = await fetch(`/api/hotel-priorities/search?hotel_name=${encodeURIComponent(hotelName)}`);
+
+  if (!response.ok) {
+    throw new Error('No se pudo buscar la prioridad del hotel.');
+  }
+
+  const hotelPriority = await response.json();
+  if (hotelPriority) {
+    priorityInput.value = hotelPriority.priority;
+    updateOutputs();
+  }
+}
+
+async function saveHotelPriority() {
+  const hotelName = hotelInput.value.trim();
+  const priority = priorityInput.value.trim();
+
+  if (!hotelName || !priority) {
+    throw new Error('Ingresa hotel y prioridad para guardar.');
+  }
+
+  const response = await fetch('/api/hotel-priorities', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ hotel_name: hotelName, priority }),
+  });
+
+  if (!response.ok) {
+    throw new Error('No se pudo guardar la prioridad del hotel.');
+  }
+
+  const saved = await response.json();
+  showMessage(`Prioridad de ${saved.hotel_name} guardada correctamente.`);
+  await loadHotelPriorities();
+}
+
+function renderHotelPriorities(rows) {
+  if (!rows.length) {
+    hotelPrioritiesBody.innerHTML = '<tr><td colspan="4">Sin prioridades guardadas.</td></tr>';
+    return;
+  }
+
+  hotelPrioritiesBody.innerHTML = rows.map((row) => `
+    <tr data-hotel-priority-id="${row.id}">
+      <td>
+        <input class="editable admin-field" data-field="hotel_name" type="text" value="${escapeHtml(row.hotel_name)}">
+      </td>
+      <td>
+        <select class="editable admin-field" data-field="priority">
+          ${priorityOptions(row.priority)}
+        </select>
+      </td>
+      <td>${escapeHtml(formatDate(row.updated_at))}</td>
+      <td class="row-actions">
+        <button type="button" class="ghost" data-action="edit-hotel-priority">Guardar</button>
+        <button type="button" class="secondary" data-action="delete-hotel-priority">Eliminar</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+async function loadHotelPriorities() {
+  const response = await fetch('/api/hotel-priorities');
+
+  if (!response.ok) {
+    throw new Error('No se pudo cargar la administración de prioridades.');
+  }
+
+  renderHotelPriorities(await response.json());
+}
+
+async function updateHotelPriority(row) {
+  const hotelPriorityId = row.dataset.hotelPriorityId;
+  const hotelName = row.querySelector('[data-field="hotel_name"]').value.trim();
+  const priority = row.querySelector('[data-field="priority"]').value.trim();
+
+  if (!hotelName || !priority) {
+    throw new Error('Hotel y prioridad son obligatorios.');
+  }
+
+  const response = await fetch(`/api/hotel-priorities/${hotelPriorityId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ hotel_name: hotelName, priority }),
+  });
+
+  if (!response.ok) {
+    throw new Error('No se pudo editar la prioridad del hotel.');
+  }
+
+  showMessage('Prioridad de hotel actualizada.');
+  await loadHotelPriorities();
+}
+
+async function deleteHotelPriority(row) {
+  const hotelPriorityId = row.dataset.hotelPriorityId;
+  const hotelName = row.querySelector('[data-field="hotel_name"]').value.trim();
+  const confirmed = window.confirm(`¿Eliminar la prioridad de ${hotelName || 'este hotel'}?`);
+  if (!confirmed) {
+    return;
+  }
+
+  const response = await fetch(`/api/hotel-priorities/${hotelPriorityId}`, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    throw new Error('No se pudo eliminar la prioridad del hotel.');
+  }
+
+  showMessage('Prioridad de hotel eliminada.');
+  await loadHotelPriorities();
+}
+
 function renderHistory(rows) {
   if (!rows.length) {
     historyBody.innerHTML = '<tr><td colspan="8">Sin solicitudes guardadas.</td></tr>';
@@ -144,6 +283,9 @@ async function loadHistory() {
 
 form.addEventListener('input', updateOutputs);
 form.addEventListener('change', updateOutputs);
+hotelInput.addEventListener('input', debounce(() => {
+  searchHotelPriority().catch(() => showMessage('No se pudo buscar la prioridad del hotel.'));
+}));
 
 document.querySelector('#copy-progress').addEventListener('click', () => {
   copyText(progressOutput.value, 'Hardblock en curso copiado.');
@@ -159,9 +301,45 @@ document.querySelector('#clear-form').addEventListener('click', () => {
   showMessage('Formulario limpio.');
 });
 
+document.querySelector('#save-hotel-priority').addEventListener('click', async () => {
+  try {
+    await saveHotelPriority();
+  } catch (error) {
+    showMessage(error.message);
+  }
+});
+
 document.querySelector('#save-request').addEventListener('click', async () => {
   try {
     await saveRequest();
+  } catch (error) {
+    showMessage(error.message);
+  }
+});
+
+document.querySelector('#refresh-hotel-priorities').addEventListener('click', async () => {
+  try {
+    await loadHotelPriorities();
+    showMessage('Prioridades actualizadas.');
+  } catch (error) {
+    showMessage(error.message);
+  }
+});
+
+hotelPrioritiesBody.addEventListener('click', async (event) => {
+  const button = event.target.closest('button');
+  if (!button) {
+    return;
+  }
+
+  const row = button.closest('tr');
+  try {
+    if (button.dataset.action === 'edit-hotel-priority') {
+      await updateHotelPriority(row);
+    }
+    if (button.dataset.action === 'delete-hotel-priority') {
+      await deleteHotelPriority(row);
+    }
   } catch (error) {
     showMessage(error.message);
   }
@@ -177,4 +355,5 @@ document.querySelector('#refresh-history').addEventListener('click', async () =>
 });
 
 updateOutputs();
+loadHotelPriorities().catch(() => showMessage('No se pudo cargar la administración de prioridades.'));
 loadHistory().catch(() => showMessage('No se pudo cargar el historial.'));
