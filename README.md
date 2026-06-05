@@ -8,8 +8,10 @@ Hardblock Generator es una aplicación web interna para generar textos automáti
 - Generación automática de dos bloques:
   - **Hardblock en curso**: usa `En curso` como valor fijo para `Status`, `Booking source`, `Meals`, `Payment`, `Hotel` y `Prioridad`.
   - **Hardblock Completed**: usa los valores reales ingresados en el formulario.
-- Botones para copiar cada bloque, limpiar el formulario, guardar la solicitud y actualizar el historial.
+- Botones para copiar cada bloque, limpiar el formulario, guardar la solicitud, guardar prioridades de hotel y actualizar el historial.
 - Persistencia en SQLite en `data/hardblock.db`.
+- Base de prioridades de hoteles en la tabla `hotel_priorities`; al escribir un hotel guardado, la prioridad se completa automáticamente.
+- Pantalla simple de administración para listar, editar y eliminar prioridades de hoteles.
 - Pantalla simple de historial de solicitudes guardadas.
 
 ## Estructura del proyecto
@@ -88,6 +90,11 @@ hardblock-generator/
 - `POST /api/generate`: genera los dos bloques de texto desde un JSON de solicitud.
 - `POST /api/requests`: guarda una solicitud en SQLite y devuelve el registro creado.
 - `GET /api/requests`: lista el historial de solicitudes guardadas.
+- `GET /api/hotel-priorities`: lista las prioridades de hoteles guardadas.
+- `GET /api/hotel-priorities/search?hotel_name=...`: busca un hotel y devuelve su prioridad si existe.
+- `POST /api/hotel-priorities`: crea o actualiza la prioridad de un hotel.
+- `PUT /api/hotel-priorities/{id}`: edita hotel y prioridad desde administración.
+- `DELETE /api/hotel-priorities/{id}`: elimina una prioridad de hotel.
 
 ## Notas
 

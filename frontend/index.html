@@ -82,6 +82,7 @@
         <button type="button" id="copy-progress" class="primary">Copiar Hardblock en curso</button>
         <button type="button" id="copy-completed" class="primary">Copiar Hardblock Completed</button>
         <button type="button" id="clear-form" class="secondary">Limpiar formulario</button>
+        <button type="button" id="save-hotel-priority" class="secondary">Guardar prioridad hotel</button>
         <button type="button" id="save-request" class="success">Guardar solicitud</button>
       </div>
       <p id="message" class="message" role="status"></p>
@@ -103,6 +104,29 @@
         </div>
         <textarea id="completed-output" readonly></textarea>
       </article>
+    </section>
+
+    <section class="panel history-panel">
+      <div class="section-title">
+        <h2>Administración de prioridades de hoteles</h2>
+        <button type="button" id="refresh-hotel-priorities" class="ghost">Actualizar prioridades</button>
+      </div>
+      <p class="helper-text">Cuando un hotel guardado coincide con el nombre escrito, la prioridad se completa automáticamente.</p>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Hotel</th>
+              <th>Prioridad</th>
+              <th>Actualizado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="hotel-priorities-body">
+            <tr><td colspan="4">Sin prioridades guardadas.</td></tr>
+          </tbody>
+        </table>
+      </div>
     </section>
 
     <section class="panel history-panel">

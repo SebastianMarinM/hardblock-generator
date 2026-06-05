@@ -2,7 +2,13 @@ import sqlite3
 from pathlib import Path
 from typing import Iterable
 
-from backend.models import HardblockCreate, HardblockResponse
+from backend.models import (
+    HardblockCreate,
+    HardblockResponse,
+    HotelPriorityCreate,
+    HotelPriorityResponse,
+    HotelPriorityUpdate,
+)
 from backend.templates_service import generate_hardblock_texts
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -56,6 +62,17 @@ def init_db() -> None:
             )
             """
         )
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS hotel_priorities (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                hotel_name TEXT NOT NULL UNIQUE COLLATE NOCASE,
+                priority TEXT NOT NULL DEFAULT '',
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
         connection.commit()
 
 
@@ -86,3 +103,95 @@ def list_requests() -> Iterable[HardblockResponse]:
 
 def row_to_response(row: sqlite3.Row) -> HardblockResponse:
     return HardblockResponse(**dict(row))
+
+
+def normalize_text(value: str) -> str:
+    return value.strip()
+
+
+def row_to_hotel_priority(row: sqlite3.Row) -> HotelPriorityResponse:
+    return HotelPriorityResponse(**dict(row))
+
+
+def list_hotel_priorities() -> Iterable[HotelPriorityResponse]:
+    with get_connection() as connection:
+        rows = connection.execute(
+            "SELECT * FROM hotel_priorities ORDER BY hotel_name COLLATE NOCASE"
+        ).fetchall()
+    return [row_to_hotel_priority(row) for row in rows]
+
+
+def get_hotel_priority_by_name(hotel_name: str) -> HotelPriorityResponse | None:
+    normalized_name = normalize_text(hotel_name)
+    if not normalized_name:
+        return None
+
+    with get_connection() as connection:
+        row = connection.execute(
+            "SELECT * FROM hotel_priorities WHERE hotel_name = ? COLLATE NOCASE",
+            (normalized_name,),
+        ).fetchone()
+
+    return row_to_hotel_priority(row) if row else None
+
+
+def create_hotel_priority(data: HotelPriorityCreate) -> HotelPriorityResponse:
+    hotel_name = normalize_text(data.hotel_name)
+    priority = normalize_text(data.priority)
+
+    with get_connection() as connection:
+        connection.execute(
+            """
+            INSERT INTO hotel_priorities (hotel_name, priority, updated_at)
+            VALUES (?, ?, CURRENT_TIMESTAMP)
+            ON CONFLICT(hotel_name) DO UPDATE SET
+                priority = excluded.priority,
+                updated_at = CURRENT_TIMESTAMP
+            """,
+            (hotel_name, priority),
+        )
+        connection.commit()
+        row = connection.execute(
+            "SELECT * FROM hotel_priorities WHERE hotel_name = ? COLLATE NOCASE",
+            (hotel_name,),
+        ).fetchone()
+
+    return row_to_hotel_priority(row)
+
+
+def update_hotel_priority(
+    hotel_priority_id: int, data: HotelPriorityUpdate
+) -> HotelPriorityResponse | None:
+    hotel_name = normalize_text(data.hotel_name)
+    priority = normalize_text(data.priority)
+
+    with get_connection() as connection:
+        existing = connection.execute(
+            "SELECT id FROM hotel_priorities WHERE id = ?", (hotel_priority_id,)
+        ).fetchone()
+        if not existing:
+            return None
+
+        connection.execute(
+            """
+            UPDATE hotel_priorities
+            SET hotel_name = ?, priority = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+            """,
+            (hotel_name, priority, hotel_priority_id),
+        )
+        connection.commit()
+        row = connection.execute(
+            "SELECT * FROM hotel_priorities WHERE id = ?", (hotel_priority_id,)
+        ).fetchone()
+
+    return row_to_hotel_priority(row)
+
+
+def delete_hotel_priority(hotel_priority_id: int) -> bool:
+    with get_connection() as connection:
+        cursor = connection.execute(
+            "DELETE FROM hotel_priorities WHERE id = ?", (hotel_priority_id,)
+        )
+        connection.commit()
+    return cursor.rowcount > 0
