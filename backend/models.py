@@ -1,7 +1,14 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, PositiveInt, field_validator
+
+
+def validate_optional_priority(value: object) -> str:
+    clean_value = str(value).strip()
+    if clean_value and (not clean_value.isdigit() or int(clean_value) <= 0):
+        raise ValueError("Priority must be a positive integer.")
+    return clean_value
 
 
 class HardblockBase(BaseModel):
@@ -17,6 +24,8 @@ class HardblockBase(BaseModel):
     booking_source: str = Field(default="", max_length=120)
     meals: str = Field(default="", max_length=120)
     payment: str = Field(default="", max_length=120)
+
+    _validate_prioridad = field_validator("prioridad")(validate_optional_priority)
 
 
 class HardblockCreate(HardblockBase):
@@ -48,6 +57,8 @@ class GroundTransportationBase(BaseModel):
     rate: str = Field(default="", max_length=120)
     payment: str = Field(default="", max_length=120)
 
+    _validate_priority = field_validator("priority")(validate_optional_priority)
+
 
 class GroundTransportationCreate(GroundTransportationBase):
     pass
@@ -67,7 +78,7 @@ class GroundTransportationResponse(GroundTransportationBase):
 
 class HotelPriorityBase(BaseModel):
     hotel_name: str = Field(default="", max_length=160)
-    priority: str = Field(default="", max_length=80)
+    priority: PositiveInt
 
 
 class HotelPriorityCreate(HotelPriorityBase):
@@ -89,6 +100,8 @@ class TransportConfigBase(BaseModel):
     priority: str = Field(default="", max_length=80)
     vehicle_type: str = Field(default="", max_length=120)
     rate: str = Field(default="", max_length=120)
+
+    _validate_priority = field_validator("priority")(validate_optional_priority)
 
 
 class TransportConfigCreate(TransportConfigBase):

@@ -57,6 +57,68 @@ def get_connection() -> sqlite3.Connection:
     return connection
 
 
+def _is_positive_integer(value: object) -> bool:
+    return str(value).strip().isdigit() and int(str(value).strip()) > 0
+
+
+def _migrate_hotel_priorities_to_numeric(connection: sqlite3.Connection) -> None:
+    table = connection.execute(
+        "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'hotel_priorities'"
+    ).fetchone()
+    if not table:
+        return
+
+    columns = connection.execute("PRAGMA table_info(hotel_priorities)").fetchall()
+    priority_column = next(
+        (column for column in columns if column[1] == "priority"), None
+    )
+    if priority_column and str(priority_column[2]).upper() == "INTEGER":
+        return
+
+    rows = connection.execute(
+        """
+        SELECT id, hotel_name, priority, created_at, updated_at
+        FROM hotel_priorities
+        ORDER BY datetime(created_at), id
+        """
+    ).fetchall()
+
+    connection.execute("ALTER TABLE hotel_priorities RENAME TO hotel_priorities_legacy")
+    connection.execute(
+        """
+        CREATE TABLE hotel_priorities (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            hotel_name TEXT NOT NULL UNIQUE COLLATE NOCASE,
+            priority INTEGER NOT NULL CHECK(priority > 0),
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )
+        """
+    )
+
+    for index, row in enumerate(rows, start=1):
+        priority = (
+            int(str(row["priority"]).strip())
+            if _is_positive_integer(row["priority"])
+            else index
+        )
+        connection.execute(
+            """
+            INSERT INTO hotel_priorities (id, hotel_name, priority, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            (
+                row["id"],
+                row["hotel_name"],
+                priority,
+                row["created_at"],
+                row["updated_at"],
+            ),
+        )
+
+    connection.execute("DROP TABLE hotel_priorities_legacy")
+
+
 def init_db() -> None:
     with get_connection() as connection:
         connection.execute(
@@ -81,12 +143,13 @@ def init_db() -> None:
             )
             """
         )
+        _migrate_hotel_priorities_to_numeric(connection)
         connection.execute(
             """
             CREATE TABLE IF NOT EXISTS hotel_priorities (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 hotel_name TEXT NOT NULL UNIQUE COLLATE NOCASE,
-                priority TEXT NOT NULL DEFAULT '',
+                priority INTEGER NOT NULL CHECK(priority > 0),
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
             )
@@ -191,6 +254,10 @@ def normalize_text(value: str) -> str:
     return value.strip()
 
 
+def normalize_priority(value: int) -> int:
+    return int(value)
+
+
 def row_to_hotel_priority(row: sqlite3.Row) -> HotelPriorityResponse:
     return HotelPriorityResponse(**dict(row))
 
@@ -202,7 +269,7 @@ def row_to_transport_config(row: sqlite3.Row) -> TransportConfigResponse:
 def list_hotel_priorities() -> Iterable[HotelPriorityResponse]:
     with get_connection() as connection:
         rows = connection.execute(
-            "SELECT * FROM hotel_priorities ORDER BY hotel_name COLLATE NOCASE"
+            "SELECT * FROM hotel_priorities ORDER BY priority ASC, hotel_name COLLATE NOCASE"
         ).fetchall()
     return [row_to_hotel_priority(row) for row in rows]
 
@@ -223,7 +290,7 @@ def get_hotel_priority_by_name(hotel_name: str) -> HotelPriorityResponse | None:
 
 def create_hotel_priority(data: HotelPriorityCreate) -> HotelPriorityResponse:
     hotel_name = normalize_text(data.hotel_name)
-    priority = normalize_text(data.priority)
+    priority = normalize_priority(data.priority)
 
     with get_connection() as connection:
         connection.execute(
@@ -249,7 +316,7 @@ def update_hotel_priority(
     hotel_priority_id: int, data: HotelPriorityUpdate
 ) -> HotelPriorityResponse | None:
     hotel_name = normalize_text(data.hotel_name)
-    priority = normalize_text(data.priority)
+    priority = normalize_priority(data.priority)
 
     with get_connection() as connection:
         existing = connection.execute(
