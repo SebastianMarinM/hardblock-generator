@@ -3,13 +3,18 @@ from pathlib import Path
 from typing import Iterable
 
 from backend.models import (
+    GroundTransportationCreate,
+    GroundTransportationResponse,
     HardblockCreate,
     HardblockResponse,
     HotelPriorityCreate,
     HotelPriorityResponse,
     HotelPriorityUpdate,
+    TransportConfigCreate,
+    TransportConfigResponse,
+    TransportConfigUpdate,
 )
-from backend.templates_service import generate_hardblock_texts
+from backend.templates_service import generate_gt_texts, generate_hardblock_texts
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
@@ -27,6 +32,20 @@ FIELDS = [
     "status",
     "booking_source",
     "meals",
+    "payment",
+]
+
+GT_FIELDS = [
+    "airline",
+    "ato",
+    "pax",
+    "motivo",
+    "origen",
+    "destino",
+    "route",
+    "vehicle_type",
+    "priority",
+    "rate",
     "payment",
 ]
 
@@ -73,6 +92,40 @@ def init_db() -> None:
             )
             """
         )
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS gt_requests (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                airline TEXT NOT NULL DEFAULT '',
+                ato TEXT NOT NULL DEFAULT '',
+                pax TEXT NOT NULL DEFAULT '',
+                motivo TEXT NOT NULL DEFAULT '',
+                origen TEXT NOT NULL DEFAULT '',
+                destino TEXT NOT NULL DEFAULT '',
+                route TEXT NOT NULL DEFAULT '',
+                vehicle_type TEXT NOT NULL DEFAULT '',
+                priority TEXT NOT NULL DEFAULT '',
+                rate TEXT NOT NULL DEFAULT '',
+                payment TEXT NOT NULL DEFAULT '',
+                in_progress_text TEXT NOT NULL,
+                completed_text TEXT NOT NULL,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS transport_configs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                hotel_name TEXT NOT NULL UNIQUE COLLATE NOCASE,
+                priority TEXT NOT NULL DEFAULT '',
+                vehicle_type TEXT NOT NULL DEFAULT '',
+                rate TEXT NOT NULL DEFAULT '',
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
         connection.commit()
 
 
@@ -101,8 +154,37 @@ def list_requests() -> Iterable[HardblockResponse]:
     return [row_to_response(row) for row in rows]
 
 
+def create_gt_request(data: GroundTransportationCreate) -> GroundTransportationResponse:
+    generated = generate_gt_texts(data)
+    values = data.model_dump()
+    columns = [*GT_FIELDS, "in_progress_text", "completed_text"]
+    placeholders = ", ".join("?" for _ in columns)
+    sql = f"INSERT INTO gt_requests ({', '.join(columns)}) VALUES ({placeholders})"
+    params = [values[field] for field in GT_FIELDS] + [generated.in_progress, generated.completed]
+
+    with get_connection() as connection:
+        cursor = connection.execute(sql, params)
+        connection.commit()
+        row = connection.execute(
+            "SELECT * FROM gt_requests WHERE id = ?", (cursor.lastrowid,)
+        ).fetchone()
+    return row_to_gt_response(row)
+
+
+def list_gt_requests() -> Iterable[GroundTransportationResponse]:
+    with get_connection() as connection:
+        rows = connection.execute(
+            "SELECT * FROM gt_requests ORDER BY datetime(created_at) DESC, id DESC"
+        ).fetchall()
+    return [row_to_gt_response(row) for row in rows]
+
+
 def row_to_response(row: sqlite3.Row) -> HardblockResponse:
     return HardblockResponse(**dict(row))
+
+
+def row_to_gt_response(row: sqlite3.Row) -> GroundTransportationResponse:
+    return GroundTransportationResponse(**dict(row))
 
 
 def normalize_text(value: str) -> str:
@@ -111,6 +193,10 @@ def normalize_text(value: str) -> str:
 
 def row_to_hotel_priority(row: sqlite3.Row) -> HotelPriorityResponse:
     return HotelPriorityResponse(**dict(row))
+
+
+def row_to_transport_config(row: sqlite3.Row) -> TransportConfigResponse:
+    return TransportConfigResponse(**dict(row))
 
 
 def list_hotel_priorities() -> Iterable[HotelPriorityResponse]:
@@ -192,6 +278,96 @@ def delete_hotel_priority(hotel_priority_id: int) -> bool:
     with get_connection() as connection:
         cursor = connection.execute(
             "DELETE FROM hotel_priorities WHERE id = ?", (hotel_priority_id,)
+        )
+        connection.commit()
+    return cursor.rowcount > 0
+
+
+def list_transport_configs() -> Iterable[TransportConfigResponse]:
+    with get_connection() as connection:
+        rows = connection.execute(
+            "SELECT * FROM transport_configs ORDER BY hotel_name COLLATE NOCASE"
+        ).fetchall()
+    return [row_to_transport_config(row) for row in rows]
+
+
+def get_transport_config_by_hotel(hotel_name: str) -> TransportConfigResponse | None:
+    normalized_name = normalize_text(hotel_name)
+    if not normalized_name:
+        return None
+
+    with get_connection() as connection:
+        row = connection.execute(
+            "SELECT * FROM transport_configs WHERE hotel_name = ? COLLATE NOCASE",
+            (normalized_name,),
+        ).fetchone()
+
+    return row_to_transport_config(row) if row else None
+
+
+def create_transport_config(data: TransportConfigCreate) -> TransportConfigResponse:
+    hotel_name = normalize_text(data.hotel_name)
+    priority = normalize_text(data.priority)
+    vehicle_type = normalize_text(data.vehicle_type)
+    rate = normalize_text(data.rate)
+
+    with get_connection() as connection:
+        connection.execute(
+            """
+            INSERT INTO transport_configs (hotel_name, priority, vehicle_type, rate, updated_at)
+            VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+            ON CONFLICT(hotel_name) DO UPDATE SET
+                priority = excluded.priority,
+                vehicle_type = excluded.vehicle_type,
+                rate = excluded.rate,
+                updated_at = CURRENT_TIMESTAMP
+            """,
+            (hotel_name, priority, vehicle_type, rate),
+        )
+        connection.commit()
+        row = connection.execute(
+            "SELECT * FROM transport_configs WHERE hotel_name = ? COLLATE NOCASE",
+            (hotel_name,),
+        ).fetchone()
+
+    return row_to_transport_config(row)
+
+
+def update_transport_config(
+    transport_config_id: int, data: TransportConfigUpdate
+) -> TransportConfigResponse | None:
+    hotel_name = normalize_text(data.hotel_name)
+    priority = normalize_text(data.priority)
+    vehicle_type = normalize_text(data.vehicle_type)
+    rate = normalize_text(data.rate)
+
+    with get_connection() as connection:
+        existing = connection.execute(
+            "SELECT id FROM transport_configs WHERE id = ?", (transport_config_id,)
+        ).fetchone()
+        if not existing:
+            return None
+
+        connection.execute(
+            """
+            UPDATE transport_configs
+            SET hotel_name = ?, priority = ?, vehicle_type = ?, rate = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+            """,
+            (hotel_name, priority, vehicle_type, rate, transport_config_id),
+        )
+        connection.commit()
+        row = connection.execute(
+            "SELECT * FROM transport_configs WHERE id = ?", (transport_config_id,)
+        ).fetchone()
+
+    return row_to_transport_config(row)
+
+
+def delete_transport_config(transport_config_id: int) -> bool:
+    with get_connection() as connection:
+        cursor = connection.execute(
+            "DELETE FROM transport_configs WHERE id = ?", (transport_config_id,)
         )
         connection.commit()
     return cursor.rowcount > 0
