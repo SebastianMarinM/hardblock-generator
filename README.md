@@ -1,64 +1,355 @@
 # Hardblock Generator
 
-Hardblock Generator es una aplicación web interna para generar textos automáticos de solicitudes operativas de **Hotel Hardblock** y **Ground Transportation (GT)**.
+## Acceso a la aplicación
 
-La aplicación permite completar formularios, generar bloques listos para copiar, guardar historial de solicitudes y administrar prioridades numéricas de hoteles según el orden definido por la compañía.
+### Ambiente Productivo (Render)
+
+https://hardblock-generator.onrender.com/
+
+La aplicación se encuentra desplegada en Render y puede ser utilizada desde cualquier navegador web sin necesidad de instalación local.
+
+> Nota: Al utilizar el plan gratuito de Render, la aplicación puede tardar entre 30 y 60 segundos en responder la primera vez después de un período de inactividad. Una vez activada, funciona normalmente.
 
 ---
 
-## URL de acceso
+# Descripción
 
-Aplicación publicada en Render:
+Hardblock Generator es una aplicación web interna diseñada para agilizar la gestión de solicitudes operativas mediante la generación automática de textos estandarizados.
+
+Actualmente soporta dos tipos de workflow:
+
+### Hotel Hardblock
+
+Genera automáticamente:
+
+- Hardblock en curso
+- Hardblock Completed
+
+Utilizando información de hotel, prioridad, habitaciones, pasajeros y demás datos operativos.
+
+### Ground Transportation (GT)
+
+Genera automáticamente:
+
+- Hard Block GT en curso
+- Hard Block GT completed
+
+Utilizando información de transporte terrestre como origen, destino, ruta, tipo de vehículo, prioridad, tarifa y forma de pago.
+
+---
+
+# Funcionalidades
+
+## Gestión de Hoteles
+
+- Creación de solicitudes Hardblock.
+- Generación automática de Hardblock en curso.
+- Generación automática de Hardblock Completed.
+- Copia rápida al portapapeles.
+- Historial de solicitudes.
+- Base de datos SQLite integrada.
+- Administración de prioridades de hoteles.
+- Autocompletado de prioridad al escribir un hotel registrado.
+
+## Gestión de Ground Transportation (GT)
+
+- Creación de solicitudes de transporte terrestre.
+- Generación automática de GT en curso.
+- Generación automática de GT completed.
+- Copia rápida al portapapeles.
+- Soporte para:
+  - Origen
+  - Destino
+  - Route
+  - GT
+  - Priority
+  - Rate
+  - Payment
+  - Vehicle Type
+
+## Administración de Prioridades
+
+La prioridad de los hoteles no se maneja como:
+
+- Alta
+- Media
+- Baja
+
+La prioridad representa el orden oficial de la compañía dentro del listado de hoteles aprobados.
+
+Ejemplo:
+
+| Hotel | Prioridad |
+|---------|---------|
+| Marriott | 1 |
+| Holiday Inn | 2 |
+| Hilton | 3 |
+| Hyatt | 4 |
+
+Cuando un usuario escribe un hotel registrado:
+
+- El sistema busca automáticamente el hotel.
+- Recupera la prioridad almacenada.
+- Completa el campo de prioridad de forma automática.
+
+---
+
+# Tecnologías Utilizadas
+
+## Backend
+
+- Python 3
+- FastAPI
+- SQLite
+- Uvicorn
+- Pydantic
+
+## Frontend
+
+- HTML5
+- CSS3
+- JavaScript Vanilla
+
+## Hosting
+
+- Render
+
+## Control de Versiones
+
+- Git
+- GitHub
+
+---
+
+# Arquitectura del Proyecto
 
 ```text
-https://hardblock-generator.onrender.com
+hardblock-generator/
+│
+├── backend/
+│   ├── main.py
+│   ├── database.py
+│   ├── models.py
+│   └── templates_service.py
+│
+├── frontend/
+│   ├── index.html
+│   ├── styles.css
+│   └── app.js
+│
+├── data/
+│
+├── requirements.txt
+│
+└── README.md
 ```
 
-> Nota: esta aplicación está desplegada en el plan gratuito de Render. Si no se usa durante un tiempo, puede tardar algunos segundos en cargar nuevamente.
+---
+
+# Base de Datos
+
+La aplicación utiliza SQLite.
+
+Archivo:
+
+```text
+data/hardblock.db
+```
+
+Tablas principales:
+
+## requests
+
+Almacena todas las solicitudes creadas.
+
+Contiene información como:
+
+- Airline
+- ATO
+- Rooms
+- PAX
+- Nights
+- Motivo
+- Hotel
+- Status
+- Fecha de creación
+
+## hotel_priorities
+
+Almacena:
+
+- Nombre del hotel
+- Prioridad numérica
+- Fecha de creación
+- Fecha de actualización
+
+Permite autocompletar automáticamente la prioridad cuando el hotel existe.
 
 ---
 
-## Funcionalidades principales
+# Ejecución Local
 
-* Generación automática de textos para Hotel.
-* Generación automática de textos para Ground Transportation (GT).
-* Copia rápida de bloques generados.
-* Limpieza de formulario.
-* Historial de solicitudes guardadas.
-* Administración de prioridades numéricas de hoteles.
-* Autocompletado de prioridad al escribir un hotel registrado.
-* Persistencia local en SQLite.
+## Requisitos
+
+- Python 3.10 o superior
+- pip
+- Git
 
 ---
 
-## Módulo Hotel
+## 1. Clonar repositorio
 
-Formulario con los campos:
+```bash
+git clone https://github.com/SebastianMarinM/hardblock-generator.git
 
-* Airline
-* ATO
-* Rooms
-* PAX
-* Nights
-* Motivo
-* Hotel
-* Prioridad
-* Status
-* Booking source
-* Meals
-* Payment
+cd hardblock-generator
+```
 
-### Hardblock en curso
+---
+
+## 2. Crear entorno virtual
+
+```bash
+python -m venv .venv
+```
+
+---
+
+## 3. Activar entorno virtual
+
+### Windows PowerShell
+
+```powershell
+.venv\Scripts\Activate.ps1
+```
+
+### Linux / macOS
+
+```bash
+source .venv/bin/activate
+```
+
+---
+
+## 4. Instalar dependencias
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+## 5. Ejecutar aplicación
+
+```bash
+uvicorn backend.main:app --reload
+```
+
+---
+
+## 6. Abrir navegador
+
+```text
+http://127.0.0.1:8000
+```
+
+---
+
+# API Disponible
+
+## Estado
+
+```http
+GET /health
+```
+
+Verifica que la API esté funcionando.
+
+---
+
+## Generar Hardblock
+
+```http
+POST /api/generate
+```
+
+Genera los bloques de texto automáticamente.
+
+---
+
+## Guardar Solicitud
+
+```http
+POST /api/requests
+```
+
+Guarda una solicitud en SQLite.
+
+---
+
+## Consultar Historial
+
+```http
+GET /api/requests
+```
+
+Obtiene todas las solicitudes guardadas.
+
+---
+
+## Prioridades de Hotel
+
+### Consultar
+
+```http
+GET /api/hotel-priorities
+```
+
+### Buscar Hotel
+
+```http
+GET /api/hotel-priorities/search
+```
+
+Ejemplo:
+
+```http
+GET /api/hotel-priorities/search?hotel_name=Marriott
+```
+
+### Crear o Actualizar
+
+```http
+POST /api/hotel-priorities
+```
+
+### Modificar
+
+```http
+PUT /api/hotel-priorities/{id}
+```
+
+### Eliminar
+
+```http
+DELETE /api/hotel-priorities/{id}
+```
+
+---
+
+# Ejemplo de Hardblock Hotel
+
+## Hardblock en curso
 
 ```text
 Hardblock en curso
 
-Airline:
-ATO:
-Rooms:
-PAX:
-Nights:
-Motivo:
+Airline: LATAM
+ATO: JFK
+Rooms: 2
+PAX: 4
+Nights: 1
+Motivo: Misconnect
 Hotel: En curso
 Prioridad: En curso
 Status: En curso
@@ -67,281 +358,127 @@ Meals: En curso
 Payment: En curso
 ```
 
-### Hardblock Completed
+---
+
+## Hardblock Completed
 
 ```text
 Hardblock Completed
 
-Airline:
-ATO:
-Rooms:
-PAX:
-Nights:
-Motivo:
-Hotel:
-Prioridad:
-Status:
-Booking source:
-Meals:
-Payment:
+Airline: LATAM
+ATO: JFK
+Rooms: 2
+PAX: 4
+Nights: 1
+Motivo: Misconnect
+Hotel: Marriott JFK
+Prioridad: 1
+Status: Completed
+Booking source: Direct
+Meals: Included
+Payment: Airline Guarantee
 ```
 
 ---
 
-## Módulo Ground Transportation (GT)
+# Ejemplo de Ground Transportation
 
-Formulario con los campos:
-
-* Airline
-* ATO
-* Pax
-* Motivo
-* Origen
-* Destino
-* Route
-* GT
-* Priority
-* Rate
-* Payment
-* Vehicle Type
-
-### Hard Block GT en curso
+## Hard Block GT en curso
 
 ```text
 Hard Block GT en curso
 
-Airline:
-ATO:
-Pax:
-Motivo:
+Airline: LATAM GT
+ATO: JFK
+Pax: 1
+Motivo: Conexión Perdida
 Status: En curso
-Origen:
-Destino:
-Route:
+Origen: ATO JFK
+Destino: HOTEL
+Route: round-trip
 GT: En curso
 Priority: En curso
 Rate: En curso
 Payment: En curso
 ```
 
-### Hard Block GT completed
+---
+
+## Hard Block GT completed
 
 ```text
 Hard Block GT completed
 
-Airline:
-ATO:
-Pax:
-Motivo:
+Airline: LATAM GT
+ATO: JFK
+Pax: 1
+Motivo: Conexión Perdida
 Status: Booked
-Origen:
-Destino:
-Route:
-GT:
-Priority:
-Rate:
-Payment:
-Vehicle Type:
+Origen: ATO JFK
+Destino: Doubletree JFK
+Route: round-trip
+GT: Shuttle
+Priority: 1
+Rate: N/A
+Payment: CVV
+Vehicle Type: VAN
 ```
 
 ---
 
-## Prioridad de hoteles
+# Despliegue en Producción
 
-La prioridad de hoteles no significa Alta, Media o Baja.
+Proveedor:
 
-En esta herramienta, la prioridad representa el **orden numérico del hotel dentro de la lista oficial de hoteles de la compañía**.
+- Render
 
-Ejemplo:
+URL:
 
-| Hotel       | Prioridad |
-| ----------- | --------: |
-| Marriott    |         1 |
-| Holiday Inn |         2 |
-| Hilton      |         3 |
+https://hardblock-generator.onrender.com/
 
-Si un hotel ya está registrado, al escribirlo en el formulario la prioridad se completa automáticamente.
+Configuración actual:
 
-Los campos de prioridad aceptan únicamente enteros positivos:
-
-```text
-1, 2, 3, 4, 5...
-```
+- Python 3
+- FastAPI
+- Uvicorn
+- GitHub Auto Deploy
+- Free Tier
 
 ---
 
-## Historial
+# Limitaciones del Plan Gratuito
 
-La aplicación permite guardar solicitudes y consultar historial desde la interfaz.
+Render Free Tier:
 
-Se manejan historiales para:
+- Puede entrar en modo inactivo tras períodos sin uso.
+- Primer acceso puede tardar entre 30 y 60 segundos.
+- Recursos limitados de CPU y memoria.
+- No garantiza persistencia permanente del almacenamiento local.
 
-* Solicitudes de Hotel.
-* Solicitudes de Ground Transportation (GT).
-* Prioridades de hoteles.
-
----
-
-## Tecnologías utilizadas
-
-### Backend
-
-* Python
-* FastAPI
-* SQLite
-* Uvicorn
-
-### Frontend
-
-* HTML
-* CSS
-* JavaScript
-
-### Hosting
-
-* Render Free Tier
+Para pruebas internas y validación funcional es suficiente.
 
 ---
 
-## Estructura del proyecto
+# Futuras Mejoras
 
-```text
-hardblock-generator/
-├── backend/
-│   ├── main.py
-│   ├── database.py
-│   ├── models.py
-│   └── templates_service.py
-├── frontend/
-│   ├── index.html
-│   ├── styles.css
-│   └── app.js
-├── data/
-│   └── .gitkeep
-├── requirements.txt
-└── README.md
-```
+- Autenticación de usuarios.
+- Roles y permisos.
+- Exportación a Excel.
+- Dashboard de métricas.
+- Búsqueda avanzada de historial.
+- Base de datos PostgreSQL.
+- Despliegue corporativo.
+- Integración con Microsoft Teams.
+- Integración con WhatsApp Business.
+- Catálogo corporativo de hoteles.
+- Catálogo corporativo de proveedores de transporte.
 
 ---
 
-## Ejecución local
+# Autor
 
-### 1. Clonar repositorio
+Sebastian Marin
 
-```bash
-git clone https://github.com/SebastianMarinM/hardblock-generator.git
-cd hardblock-generator
-```
+Data Engineer | Operations Analyst
 
-### 2. Crear entorno virtual
-
-```bash
-python -m venv .venv
-```
-
-### 3. Activar entorno virtual
-
-Windows PowerShell:
-
-```powershell
-.venv\Scripts\Activate.ps1
-```
-
-macOS/Linux:
-
-```bash
-source .venv/bin/activate
-```
-
-### 4. Instalar dependencias
-
-```bash
-pip install -r requirements.txt
-```
-
-### 5. Ejecutar aplicación
-
-```bash
-uvicorn backend.main:app --reload
-```
-
-### 6. Abrir en navegador
-
-```text
-http://127.0.0.1:8000
-```
-
----
-
-## Despliegue en Render
-
-La aplicación está desplegada como Web Service en Render.
-
-### Build Command
-
-```bash
-pip install -r requirements.txt
-```
-
-### Start Command
-
-```bash
-uvicorn backend.main:app --host 0.0.0.0 --port $PORT
-```
-
----
-
-## API disponible
-
-### General
-
-```text
-GET /
-GET /health
-```
-
-### Hotel
-
-```text
-POST /api/generate
-POST /api/requests
-GET /api/requests
-```
-
-### Prioridades de hoteles
-
-```text
-GET /api/hotel-priorities
-GET /api/hotel-priorities/search?hotel_name=...
-POST /api/hotel-priorities
-PUT /api/hotel-priorities/{id}
-DELETE /api/hotel-priorities/{id}
-```
-
-### Ground Transportation
-
-```text
-POST /api/gt/generate
-POST /api/gt/requests
-GET /api/gt/requests
-```
-
----
-
-## Limitaciones actuales
-
-* La aplicación está en Render Free Tier.
-* La primera carga puede tardar si la app estuvo inactiva.
-* SQLite funciona para pruebas, pero no es ideal para producción.
-* Para uso definitivo se recomienda migrar la base de datos a PostgreSQL.
-
----
-
-## Estado del proyecto
-
-Versión de prueba interna para validación operativa de los procesos:
-
-* Hotel Hardblock
-* Ground Transportation (GT)
-* Prioridades numéricas de hoteles
-* Historial de solicitudes
+Proyecto desarrollado para optimizar la gestión operativa de solicitudes de Hotel Hardblock y Ground Transportation.
