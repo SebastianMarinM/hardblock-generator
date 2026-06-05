@@ -16,66 +16,42 @@
   </header>
 
   <main class="container">
-    <section class="panel">
+    <section class="panel workflow-panel">
+      <div class="section-title">
+        <h2>Workflow</h2>
+        <span>Selecciona el tipo de solicitud</span>
+      </div>
+      <div class="workflow-selector" role="radiogroup" aria-label="Workflow selector">
+        <label class="workflow-option">
+          <input type="radio" name="workflow" value="hotel" checked>
+          Hotel
+        </label>
+        <label class="workflow-option">
+          <input type="radio" name="workflow" value="gt">
+          Ground Transportation (GT)
+        </label>
+      </div>
+    </section>
+
+    <section class="panel" data-workflow-section="hotel">
       <div class="section-title">
         <h2>Datos de solicitud</h2>
         <span>Campos editables</span>
       </div>
 
       <form id="hardblock-form" class="form-grid">
-        <label>
-          Airline
-          <input class="editable" id="airline" name="airline" type="text" placeholder="Ej. IB / UX / AV">
-        </label>
-        <label>
-          ATO
-          <input class="editable" id="ato" name="ato" type="text" placeholder="Ej. MADATO">
-        </label>
-        <label>
-          Rooms
-          <input class="editable" id="rooms" name="rooms" type="text" placeholder="Ej. 12">
-        </label>
-        <label>
-          PAX
-          <input class="editable" id="pax" name="pax" type="text" placeholder="Ej. 24">
-        </label>
-        <label>
-          Nights
-          <input class="editable" id="nights" name="nights" type="text" placeholder="Ej. 1">
-        </label>
-        <label>
-          Motivo
-          <input class="editable" id="motivo" name="motivo" type="text" placeholder="Ej. Cancelación / demora">
-        </label>
-        <label>
-          Hotel
-          <input class="editable" id="hotel" name="hotel" type="text" placeholder="Ej. Hotel Central">
-        </label>
-        <label>
-          Prioridad
-          <select class="editable" id="prioridad" name="prioridad">
-            <option value="">Seleccionar</option>
-            <option>Alta</option>
-            <option>Media</option>
-            <option>Baja</option>
-          </select>
-        </label>
-        <label>
-          Status
-          <input class="editable" id="status" name="status" type="text" placeholder="Ej. Completed">
-        </label>
-        <label>
-          Booking source
-          <input class="editable" id="booking_source" name="booking_source" type="text" placeholder="Ej. Direct / CRS">
-        </label>
-        <label>
-          Meals
-          <input class="editable" id="meals" name="meals" type="text" placeholder="Ej. Breakfast included">
-        </label>
-        <label>
-          Payment
-          <input class="editable" id="payment" name="payment" type="text" placeholder="Ej. Airline guarantee">
-        </label>
+        <label>Airline<input class="editable" id="airline" name="airline" type="text" placeholder="Ej. IB / UX / AV"></label>
+        <label>ATO<input class="editable" id="ato" name="ato" type="text" placeholder="Ej. MADATO"></label>
+        <label>Rooms<input class="editable" id="rooms" name="rooms" type="text" placeholder="Ej. 12"></label>
+        <label>PAX<input class="editable" id="pax" name="pax" type="text" placeholder="Ej. 24"></label>
+        <label>Nights<input class="editable" id="nights" name="nights" type="text" placeholder="Ej. 1"></label>
+        <label>Motivo<input class="editable" id="motivo" name="motivo" type="text" placeholder="Ej. Cancelación / demora"></label>
+        <label>Hotel<input class="editable" id="hotel" name="hotel" type="text" placeholder="Ej. Hotel Central"></label>
+        <label>Prioridad<select class="editable" id="prioridad" name="prioridad"><option value="">Seleccionar</option><option>Alta</option><option>Media</option><option>Baja</option></select></label>
+        <label>Status<input class="editable" id="status" name="status" type="text" placeholder="Ej. Completed"></label>
+        <label>Booking source<input class="editable" id="booking_source" name="booking_source" type="text" placeholder="Ej. Direct / CRS"></label>
+        <label>Meals<input class="editable" id="meals" name="meals" type="text" placeholder="Ej. Breakfast included"></label>
+        <label>Payment<input class="editable" id="payment" name="payment" type="text" placeholder="Ej. Airline guarantee"></label>
       </form>
 
       <div class="actions">
@@ -85,13 +61,43 @@
         <button type="button" id="save-hotel-priority" class="secondary">Guardar prioridad hotel</button>
         <button type="button" id="save-request" class="success">Guardar solicitud</button>
       </div>
-      <p id="message" class="message" role="status"></p>
     </section>
+
+    <section class="panel is-hidden" data-workflow-section="gt">
+      <div class="section-title">
+        <h2>Datos de Ground Transportation</h2>
+        <span>Campos editables</span>
+      </div>
+
+      <form id="gt-form" class="form-grid">
+        <label>Airline<input class="editable" id="gt-airline" name="airline" type="text" placeholder="Ej. IB / UX / AV"></label>
+        <label>ATO<input class="editable" id="gt-ato" name="ato" type="text" placeholder="Ej. MADATO"></label>
+        <label>Pax<input class="editable" id="gt-pax" name="pax" type="text" placeholder="Ej. 24"></label>
+        <label>Motivo<input class="editable" id="gt-motivo" name="motivo" type="text" placeholder="Ej. Cancelación / demora"></label>
+        <label>Origen<input class="editable" id="gt-origen" name="origen" type="text" placeholder="Ej. Airport"></label>
+        <label>Destino<input class="editable" id="gt-destino" name="destino" type="text" placeholder="Ej. Hotel Central"></label>
+        <label>Route<select class="editable" id="gt-route" name="route"><option value="">Seleccionar</option><option>round-trip</option><option>one-way</option></select></label>
+        <label>Vehicle Type<input class="editable" id="gt-vehicle_type" name="vehicle_type" type="text" placeholder="Ej. Van"></label>
+        <label>Priority<select class="editable" id="gt-priority" name="priority"><option value="">Seleccionar</option><option>Alta</option><option>Media</option><option>Baja</option></select></label>
+        <label>Rate<input class="editable" id="gt-rate" name="rate" type="text" placeholder="Ej. 85 EUR"></label>
+        <label>Payment<input class="editable" id="gt-payment" name="payment" type="text" placeholder="Ej. Airline guarantee"></label>
+      </form>
+
+      <div class="actions">
+        <button type="button" id="copy-gt-progress" class="primary">Copiar GT en curso</button>
+        <button type="button" id="copy-gt-completed" class="primary">Copiar GT Completed</button>
+        <button type="button" id="clear-gt-form" class="secondary">Limpiar formulario</button>
+        <button type="button" id="save-transport-config" class="secondary">Guardar configuración GT</button>
+        <button type="button" id="save-gt-request" class="success">Guardar solicitud GT</button>
+      </div>
+    </section>
+
+    <p id="message" class="message" role="status"></p>
 
     <section class="results-grid">
       <article class="panel result-card">
         <div class="section-title">
-          <h2>Hardblock en curso</h2>
+          <h2 id="progress-title">Hardblock en curso</h2>
           <span>Valores fijos operativos</span>
         </div>
         <textarea id="progress-output" readonly></textarea>
@@ -99,60 +105,45 @@
 
       <article class="panel result-card">
         <div class="section-title">
-          <h2>Hardblock Completed</h2>
+          <h2 id="completed-title">Hardblock Completed</h2>
           <span>Valores ingresados</span>
         </div>
         <textarea id="completed-output" readonly></textarea>
       </article>
     </section>
 
-    <section class="panel history-panel">
+    <section class="panel history-panel" data-workflow-section="hotel">
       <div class="section-title">
         <h2>Administración de prioridades de hoteles</h2>
         <button type="button" id="refresh-hotel-priorities" class="ghost">Actualizar prioridades</button>
       </div>
       <p class="helper-text">Cuando un hotel guardado coincide con el nombre escrito, la prioridad se completa automáticamente.</p>
-      <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>Hotel</th>
-              <th>Prioridad</th>
-              <th>Actualizado</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody id="hotel-priorities-body">
-            <tr><td colspan="4">Sin prioridades guardadas.</td></tr>
-          </tbody>
-        </table>
-      </div>
+      <div class="table-wrapper"><table><thead><tr><th>Hotel</th><th>Prioridad</th><th>Actualizado</th><th>Acciones</th></tr></thead><tbody id="hotel-priorities-body"><tr><td colspan="4">Sin prioridades guardadas.</td></tr></tbody></table></div>
     </section>
 
-    <section class="panel history-panel">
+    <section class="panel history-panel is-hidden" data-workflow-section="gt">
+      <div class="section-title">
+        <h2>Configuración de transporte</h2>
+        <button type="button" id="refresh-transport-configs" class="ghost">Actualizar configuración</button>
+      </div>
+      <p class="helper-text">Cuando el destino coincide con un hotel guardado, Priority, Vehicle Type y Rate se completan automáticamente.</p>
+      <div class="table-wrapper"><table><thead><tr><th>Hotel</th><th>Priority</th><th>Vehicle Type</th><th>Rate</th><th>Actualizado</th><th>Acciones</th></tr></thead><tbody id="transport-configs-body"><tr><td colspan="6">Sin configuración guardada.</td></tr></tbody></table></div>
+    </section>
+
+    <section class="panel history-panel" data-workflow-section="hotel">
       <div class="section-title">
         <h2>Historial de solicitudes</h2>
         <button type="button" id="refresh-history" class="ghost">Actualizar historial</button>
       </div>
-      <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>Fecha</th>
-              <th>Airline</th>
-              <th>ATO</th>
-              <th>Rooms</th>
-              <th>PAX</th>
-              <th>Nights</th>
-              <th>Hotel</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody id="history-body">
-            <tr><td colspan="8">Sin solicitudes guardadas.</td></tr>
-          </tbody>
-        </table>
+      <div class="table-wrapper"><table><thead><tr><th>Fecha</th><th>Airline</th><th>ATO</th><th>Rooms</th><th>PAX</th><th>Nights</th><th>Hotel</th><th>Status</th></tr></thead><tbody id="history-body"><tr><td colspan="8">Sin solicitudes guardadas.</td></tr></tbody></table></div>
+    </section>
+
+    <section class="panel history-panel is-hidden" data-workflow-section="gt">
+      <div class="section-title">
+        <h2>Historial de solicitudes GT</h2>
+        <button type="button" id="refresh-gt-history" class="ghost">Actualizar historial GT</button>
       </div>
+      <div class="table-wrapper"><table><thead><tr><th>Fecha</th><th>Airline</th><th>ATO</th><th>Pax</th><th>Origen</th><th>Destino</th><th>Route</th><th>Vehicle Type</th><th>Priority</th></tr></thead><tbody id="gt-history-body"><tr><td colspan="9">Sin solicitudes GT guardadas.</td></tr></tbody></table></div>
     </section>
   </main>
 

@@ -262,3 +262,31 @@ td {
   display: flex;
   gap: 8px;
 }
+
+.workflow-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.workflow-option {
+  align-items: center;
+  background: #eef6f1;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--primary-dark);
+  cursor: pointer;
+  display: inline-flex;
+  font-weight: 800;
+  gap: 8px;
+  padding: 10px 16px;
+}
+
+.workflow-option input {
+  min-height: auto;
+  padding: 0;
+}
+
+.is-hidden {
+  display: none;
+}
