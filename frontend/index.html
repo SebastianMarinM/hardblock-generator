@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hardblock Generator</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <p class="eyebrow">Herramienta interna</p>
+      <h1>Hardblock Generator</h1>
+      <p class="subtitle">Genera textos estándar para solicitudes Hardblock y guarda el historial en SQLite.</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="panel">
+      <div class="section-title">
+        <h2>Datos de solicitud</h2>
+        <span>Campos editables</span>
+      </div>
+
+      <form id="hardblock-form" class="form-grid">
+        <label>
+          Airline
+          <input class="editable" id="airline" name="airline" type="text" placeholder="Ej. IB / UX / AV">
+        </label>
+        <label>
+          ATO
+          <input class="editable" id="ato" name="ato" type="text" placeholder="Ej. MADATO">
+        </label>
+        <label>
+          Rooms
+          <input class="editable" id="rooms" name="rooms" type="text" placeholder="Ej. 12">
+        </label>
+        <label>
+          PAX
+          <input class="editable" id="pax" name="pax" type="text" placeholder="Ej. 24">
+        </label>
+        <label>
+          Nights
+          <input class="editable" id="nights" name="nights" type="text" placeholder="Ej. 1">
+        </label>
+        <label>
+          Motivo
+          <input class="editable" id="motivo" name="motivo" type="text" placeholder="Ej. Cancelación / demora">
+        </label>
+        <label>
+          Hotel
+          <input class="editable" id="hotel" name="hotel" type="text" placeholder="Ej. Hotel Central">
+        </label>
+        <label>
+          Prioridad
+          <select class="editable" id="prioridad" name="prioridad">
+            <option value="">Seleccionar</option>
+            <option>Alta</option>
+            <option>Media</option>
+            <option>Baja</option>
+          </select>
+        </label>
+        <label>
+          Status
+          <input class="editable" id="status" name="status" type="text" placeholder="Ej. Completed">
+        </label>
+        <label>
+          Booking source
+          <input class="editable" id="booking_source" name="booking_source" type="text" placeholder="Ej. Direct / CRS">
+        </label>
+        <label>
+          Meals
+          <input class="editable" id="meals" name="meals" type="text" placeholder="Ej. Breakfast included">
+        </label>
+        <label>
+          Payment
+          <input class="editable" id="payment" name="payment" type="text" placeholder="Ej. Airline guarantee">
+        </label>
+      </form>
+
+      <div class="actions">
+        <button type="button" id="copy-progress" class="primary">Copiar Hardblock en curso</button>
+        <button type="button" id="copy-completed" class="primary">Copiar Hardblock Completed</button>
+        <button type="button" id="clear-form" class="secondary">Limpiar formulario</button>
+        <button type="button" id="save-request" class="success">Guardar solicitud</button>
+      </div>
+      <p id="message" class="message" role="status"></p>
+    </section>
+
+    <section class="results-grid">
+      <article class="panel result-card">
+        <div class="section-title">
+          <h2>Hardblock en curso</h2>
+          <span>Valores fijos operativos</span>
+        </div>
+        <textarea id="progress-output" readonly></textarea>
+      </article>
+
+      <article class="panel result-card">
+        <div class="section-title">
+          <h2>Hardblock Completed</h2>
+          <span>Valores ingresados</span>
+        </div>
+        <textarea id="completed-output" readonly></textarea>
+      </article>
+    </section>
+
+    <section class="panel history-panel">
+      <div class="section-title">
+        <h2>Historial de solicitudes</h2>
+        <button type="button" id="refresh-history" class="ghost">Actualizar historial</button>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Airline</th>
+              <th>ATO</th>
+              <th>Rooms</th>
+              <th>PAX</th>
+              <th>Nights</th>
+              <th>Hotel</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="history-body">
+            <tr><td colspan="8">Sin solicitudes guardadas.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
