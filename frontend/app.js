@@ -152,10 +152,12 @@ function showMessage(text) {
 }
 
 async function saveRequest() {
+  const data = collectFormData();
+  if (data.prioridad && !isPositiveInteger(data.prioridad)) throw new Error('La prioridad debe ser un entero positivo (1, 2, 3, etc.).');
   const response = await fetch('/api/requests', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(collectFormData()),
+    body: JSON.stringify(data),
   });
   if (!response.ok) throw new Error('No se pudo guardar la solicitud.');
   const saved = await response.json();
@@ -164,10 +166,12 @@ async function saveRequest() {
 }
 
 async function saveGtRequest() {
+  const data = collectGtFormData();
+  if (data.priority && !isPositiveInteger(data.priority)) throw new Error('Priority debe ser un entero positivo (1, 2, 3, etc.).');
   const response = await fetch('/api/gt/requests', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(collectGtFormData()),
+    body: JSON.stringify(data),
   });
   if (!response.ok) throw new Error('No se pudo guardar la solicitud GT.');
   const saved = await response.json();
@@ -189,12 +193,12 @@ function escapeHtml(value) {
     .replaceAll("'", '&#039;');
 }
 
-function priorityOptions(selectedPriority) {
-  return ['', 'Alta', 'Media', 'Baja'].map((priority) => {
-    const label = priority || 'Seleccionar';
-    const selected = priority === selectedPriority ? ' selected' : '';
-    return `<option value="${escapeHtml(priority)}"${selected}>${escapeHtml(label)}</option>`;
-  }).join('');
+function isPositiveInteger(value) {
+  return /^[1-9]\d*$/.test(String(value || '').trim());
+}
+
+function numericPriorityInput(value) {
+  return `<input class="editable admin-field" data-field="priority" type="number" min="1" step="1" inputmode="numeric" value="${escapeHtml(value || '')}">`;
 }
 
 async function searchHotelPriority() {
@@ -226,7 +230,7 @@ async function searchTransportConfig() {
 async function saveHotelPriority() {
   const hotelName = hotelInput.value.trim();
   const priority = priorityInput.value.trim();
-  if (!hotelName || !priority) throw new Error('Ingresa hotel y prioridad para guardar.');
+  if (!hotelName || !isPositiveInteger(priority)) throw new Error('Ingresa hotel y una prioridad numérica positiva (1, 2, 3, etc.) para guardar.');
   const response = await fetch('/api/hotel-priorities', {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ hotel_name: hotelName, priority }),
   });
@@ -241,7 +245,7 @@ async function saveTransportConfig() {
   const priority = gtPriorityInput.value.trim();
   const vehicleType = gtVehicleTypeInput.value.trim();
   const rate = gtRateInput.value.trim();
-  if (!hotelName || !priority || !vehicleType || !rate) throw new Error('Ingresa hotel, priority, vehicle type y rate para guardar.');
+  if (!hotelName || !isPositiveInteger(priority) || !vehicleType || !rate) throw new Error('Ingresa hotel, priority numérico positivo, vehicle type y rate para guardar.');
   const response = await fetch('/api/transport-configs', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -261,7 +265,7 @@ function renderHotelPriorities(rows) {
   hotelPrioritiesBody.innerHTML = rows.map((row) => `
     <tr data-hotel-priority-id="${row.id}">
       <td><input class="editable admin-field" data-field="hotel_name" type="text" value="${escapeHtml(row.hotel_name)}"></td>
-      <td><select class="editable admin-field" data-field="priority">${priorityOptions(row.priority)}</select></td>
+      <td>${numericPriorityInput(row.priority)}</td>
       <td>${escapeHtml(formatDate(row.updated_at))}</td>
       <td class="row-actions"><button type="button" class="ghost" data-action="edit-hotel-priority">Guardar</button><button type="button" class="secondary" data-action="delete-hotel-priority">Eliminar</button></td>
     </tr>
@@ -276,7 +280,7 @@ function renderTransportConfigs(rows) {
   transportConfigsBody.innerHTML = rows.map((row) => `
     <tr data-transport-config-id="${row.id}">
       <td><input class="editable admin-field" data-field="hotel_name" type="text" value="${escapeHtml(row.hotel_name)}"></td>
-      <td><select class="editable admin-field" data-field="priority">${priorityOptions(row.priority)}</select></td>
+      <td>${numericPriorityInput(row.priority)}</td>
       <td><input class="editable admin-field" data-field="vehicle_type" type="text" value="${escapeHtml(row.vehicle_type)}"></td>
       <td><input class="editable admin-field" data-field="rate" type="text" value="${escapeHtml(row.rate)}"></td>
       <td>${escapeHtml(formatDate(row.updated_at))}</td>
@@ -301,7 +305,7 @@ async function updateHotelPriority(row) {
   const hotelPriorityId = row.dataset.hotelPriorityId;
   const hotelName = row.querySelector('[data-field="hotel_name"]').value.trim();
   const priority = row.querySelector('[data-field="priority"]').value.trim();
-  if (!hotelName || !priority) throw new Error('Hotel y prioridad son obligatorios.');
+  if (!hotelName || !isPositiveInteger(priority)) throw new Error('Hotel y prioridad numérica positiva son obligatorios.');
   const response = await fetch(`/api/hotel-priorities/${hotelPriorityId}`, {
     method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ hotel_name: hotelName, priority }),
   });
@@ -316,7 +320,7 @@ async function updateTransportConfig(row) {
   const priority = row.querySelector('[data-field="priority"]').value.trim();
   const vehicleType = row.querySelector('[data-field="vehicle_type"]').value.trim();
   const rate = row.querySelector('[data-field="rate"]').value.trim();
-  if (!hotelName || !priority || !vehicleType || !rate) throw new Error('Hotel, priority, vehicle type y rate son obligatorios.');
+  if (!hotelName || !isPositiveInteger(priority) || !vehicleType || !rate) throw new Error('Hotel, priority numérico positivo, vehicle type y rate son obligatorios.');
   const response = await fetch(`/api/transport-configs/${transportConfigId}`, {
     method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ hotel_name: hotelName, priority, vehicle_type: vehicleType, rate }),
   });
@@ -384,6 +388,12 @@ gtForm.addEventListener('change', updateOutputs);
 document.querySelectorAll('input[name="workflow"]').forEach((input) => input.addEventListener('change', () => setWorkflow(input.value)));
 hotelInput.addEventListener('input', debounce(() => searchHotelPriority().catch(() => showMessage('No se pudo buscar la prioridad del hotel.'))));
 gtDestinoInput.addEventListener('input', debounce(() => searchTransportConfig().catch(() => showMessage('No se pudo buscar la configuración de transporte.'))));
+[priorityInput, gtPriorityInput].forEach((input) => {
+  input.addEventListener('input', () => {
+    const valid = !input.value.trim() || isPositiveInteger(input.value);
+    input.setCustomValidity(valid ? '' : 'Ingresa un entero positivo: 1, 2, 3, etc.');
+  });
+});
 
 document.querySelector('#copy-progress').addEventListener('click', () => copyText(progressOutput.value, 'Hardblock en curso copiado.'));
 document.querySelector('#copy-completed').addEventListener('click', () => copyText(completedOutput.value, 'Hardblock Completed copiado.'));

@@ -47,7 +47,7 @@
         <label>Nights<input class="editable" id="nights" name="nights" type="text" placeholder="Ej. 1"></label>
         <label>Motivo<input class="editable" id="motivo" name="motivo" type="text" placeholder="Ej. Cancelación / demora"></label>
         <label>Hotel<input class="editable" id="hotel" name="hotel" type="text" placeholder="Ej. Hotel Central"></label>
-        <label>Prioridad<select class="editable" id="prioridad" name="prioridad"><option value="">Seleccionar</option><option>Alta</option><option>Media</option><option>Baja</option></select></label>
+        <label>Prioridad / orden hotel<input class="editable" id="prioridad" name="prioridad" type="number" min="1" step="1" inputmode="numeric" placeholder="Ej. 1"></label>
         <label>Status<input class="editable" id="status" name="status" type="text" placeholder="Ej. Completed"></label>
         <label>Booking source<input class="editable" id="booking_source" name="booking_source" type="text" placeholder="Ej. Direct / CRS"></label>
         <label>Meals<input class="editable" id="meals" name="meals" type="text" placeholder="Ej. Breakfast included"></label>
@@ -78,7 +78,7 @@
         <label>Destino<input class="editable" id="gt-destino" name="destino" type="text" placeholder="Ej. Hotel Central"></label>
         <label>Route<select class="editable" id="gt-route" name="route"><option value="">Seleccionar</option><option>round-trip</option><option>one-way</option></select></label>
         <label>Vehicle Type<input class="editable" id="gt-vehicle_type" name="vehicle_type" type="text" placeholder="Ej. Van"></label>
-        <label>Priority<select class="editable" id="gt-priority" name="priority"><option value="">Seleccionar</option><option>Alta</option><option>Media</option><option>Baja</option></select></label>
+        <label>Priority / hotel order<input class="editable" id="gt-priority" name="priority" type="number" min="1" step="1" inputmode="numeric" placeholder="Ej. 1"></label>
         <label>Rate<input class="editable" id="gt-rate" name="rate" type="text" placeholder="Ej. 85 EUR"></label>
         <label>Payment<input class="editable" id="gt-payment" name="payment" type="text" placeholder="Ej. Airline guarantee"></label>
       </form>
@@ -117,8 +117,8 @@
         <h2>Administración de prioridades de hoteles</h2>
         <button type="button" id="refresh-hotel-priorities" class="ghost">Actualizar prioridades</button>
       </div>
-      <p class="helper-text">Cuando un hotel guardado coincide con el nombre escrito, la prioridad se completa automáticamente.</p>
-      <div class="table-wrapper"><table><thead><tr><th>Hotel</th><th>Prioridad</th><th>Actualizado</th><th>Acciones</th></tr></thead><tbody id="hotel-priorities-body"><tr><td colspan="4">Sin prioridades guardadas.</td></tr></tbody></table></div>
+      <p class="helper-text">Cuando un hotel guardado coincide con el nombre escrito, la prioridad numérica se completa automáticamente. La prioridad es el orden/ranking del hotel en la lista de hoteles de la compañía (1, 2, 3, etc.).</p>
+      <div class="table-wrapper"><table><thead><tr><th>Hotel</th><th>Prioridad numérica (orden/ranking)</th><th>Actualizado</th><th>Acciones</th></tr></thead><tbody id="hotel-priorities-body"><tr><td colspan="4">Sin prioridades guardadas.</td></tr></tbody></table></div>
     </section>
 
     <section class="panel history-panel is-hidden" data-workflow-section="gt">
@@ -126,7 +126,7 @@
         <h2>Configuración de transporte</h2>
         <button type="button" id="refresh-transport-configs" class="ghost">Actualizar configuración</button>
       </div>
-      <p class="helper-text">Cuando el destino coincide con un hotel guardado, Priority, Vehicle Type y Rate se completan automáticamente.</p>
+      <p class="helper-text">Cuando el destino coincide con un hotel guardado, Priority numérico (orden/ranking del hotel), Vehicle Type y Rate se completan automáticamente.</p>
       <div class="table-wrapper"><table><thead><tr><th>Hotel</th><th>Priority</th><th>Vehicle Type</th><th>Rate</th><th>Actualizado</th><th>Acciones</th></tr></thead><tbody id="transport-configs-body"><tr><td colspan="6">Sin configuración guardada.</td></tr></tbody></table></div>
     </section>
 

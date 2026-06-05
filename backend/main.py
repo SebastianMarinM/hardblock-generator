@@ -95,15 +95,20 @@ def gt_history() -> list[GroundTransportationResponse]:
 def validate_hotel_priority(data: HotelPriorityCreate | HotelPriorityUpdate) -> None:
     if not data.hotel_name.strip():
         raise HTTPException(status_code=400, detail="Hotel name is required.")
-    if not data.priority.strip():
-        raise HTTPException(status_code=400, detail="Priority is required.")
+    if data.priority <= 0:
+        raise HTTPException(
+            status_code=400, detail="Priority must be a positive integer."
+        )
 
 
 def validate_transport_config(data: TransportConfigCreate | TransportConfigUpdate) -> None:
     if not data.hotel_name.strip():
         raise HTTPException(status_code=400, detail="Hotel name is required.")
-    if not data.priority.strip():
-        raise HTTPException(status_code=400, detail="Priority is required.")
+    priority = data.priority.strip()
+    if not priority or not priority.isdigit() or int(priority) <= 0:
+        raise HTTPException(
+            status_code=400, detail="Priority must be a positive integer."
+        )
     if not data.vehicle_type.strip():
         raise HTTPException(status_code=400, detail="Vehicle Type is required.")
     if not data.rate.strip():

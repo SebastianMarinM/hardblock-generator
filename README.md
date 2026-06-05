@@ -4,14 +4,14 @@ Hardblock Generator es una aplicación web interna para generar textos automáti
 
 ## Funcionalidades
 
-- Formulario con los campos: `airline`, `ato`, `rooms`, `pax`, `nights`, `motivo`, `hotel`, `prioridad`, `status`, `booking_source`, `meals` y `payment`.
+- Formulario con los campos: `airline`, `ato`, `rooms`, `pax`, `nights`, `motivo`, `hotel`, `prioridad`, `status`, `booking_source`, `meals` y `payment`. La `prioridad` es un número entero positivo que representa el orden/ranking del hotel en la lista de hoteles de la compañía.
 - Generación automática de dos bloques:
   - **Hardblock en curso**: usa `En curso` como valor fijo para `Status`, `Booking source`, `Meals`, `Payment`, `Hotel` y `Prioridad`.
   - **Hardblock Completed**: usa los valores reales ingresados en el formulario.
-- Botones para copiar cada bloque, limpiar el formulario, guardar la solicitud, guardar prioridades de hotel y actualizar el historial.
+- Botones para copiar cada bloque, limpiar el formulario, guardar la solicitud, guardar prioridades numéricas de hotel y actualizar el historial.
 - Persistencia en SQLite en `data/hardblock.db`.
-- Base de prioridades de hoteles en la tabla `hotel_priorities`; al escribir un hotel guardado, la prioridad se completa automáticamente.
-- Pantalla simple de administración para listar, editar y eliminar prioridades de hoteles.
+- Base de prioridades de hoteles en la tabla `hotel_priorities`; al escribir un hotel guardado, la prioridad numérica se completa automáticamente.
+- Pantalla simple de administración para listar, editar y eliminar prioridades numéricas de hoteles.
 - Pantalla simple de historial de solicitudes guardadas.
 
 ## Estructura del proyecto
@@ -90,11 +90,21 @@ hardblock-generator/
 - `POST /api/generate`: genera los dos bloques de texto desde un JSON de solicitud.
 - `POST /api/requests`: guarda una solicitud en SQLite y devuelve el registro creado.
 - `GET /api/requests`: lista el historial de solicitudes guardadas.
-- `GET /api/hotel-priorities`: lista las prioridades de hoteles guardadas.
-- `GET /api/hotel-priorities/search?hotel_name=...`: busca un hotel y devuelve su prioridad si existe.
-- `POST /api/hotel-priorities`: crea o actualiza la prioridad de un hotel.
-- `PUT /api/hotel-priorities/{id}`: edita hotel y prioridad desde administración.
+- `GET /api/hotel-priorities`: lista las prioridades numéricas de hoteles guardadas.
+- `GET /api/hotel-priorities/search?hotel_name=...`: busca un hotel y devuelve su prioridad numérica si existe.
+- `POST /api/hotel-priorities`: crea o actualiza la prioridad numérica de un hotel.
+- `PUT /api/hotel-priorities/{id}`: edita hotel y prioridad numérica desde administración.
 - `DELETE /api/hotel-priorities/{id}`: elimina una prioridad de hotel.
+
+## Prioridad de hoteles
+
+La prioridad de un hotel no es `Alta`, `Media` ni `Baja`. Es el orden numérico del hotel dentro de la lista de hoteles de la compañía:
+
+- Si Marriott está primero en la lista, su prioridad es `1`.
+- Si Holiday Inn está segundo, su prioridad es `2`.
+- Si Hilton está tercero, su prioridad es `3`.
+
+Los campos de prioridad aceptan únicamente enteros positivos (`1`, `2`, `3`, `4`, etc.). La tabla `hotel_priorities` guarda el nombre del hotel y su prioridad numérica; si una base existente tenía prioridades de texto, al inicializar la app se migra la tabla para guardar números y se asigna el orden según los registros existentes cuando no hay un valor numérico válido.
 
 ## Notas
 
